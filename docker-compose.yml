@@ -12,7 +12,7 @@ services:
         - ./postgresql:/var/lib/postgresql/data
 
   odoo14:
-    image: odoo:14
+    image: odoo:12
     user: root
     depends_on:
       - db
@@ -29,7 +29,7 @@ services:
     volumes:
       #- /etc/timezone:/etc/timezone:ro
       #- /etc/localtime:/etc/localtime:ro
-      # - ./entrypoint.sh:/entrypoint.sh   # if you want to install additional Python packages, uncomment this line!
+      - ./entrypoint.sh:/entrypoint.sh   # if you want to install additional Python packages, uncomment this line!
       - ./addons:/mnt/extra-addons
       - ./etc:/etc/odoo
     restart: always             # run as a service
