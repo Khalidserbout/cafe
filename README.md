@@ -1,24 +1,28 @@
+# Odoo For coffe shops 
+This is odoo 12 with custom addons for coffe shops
+
+
 # Quick install
 
-Installing Odoo 14 with one command.
+Installing Odoo 12 with one command.
 
 (Supports multiple Odoo instances on one server)
 
 Install [docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/) yourself, then run:
 
 ``` bash
-curl -s https://raw.githubusercontent.com/minhng92/odoo-14-docker-compose/master/run.sh | sudo bash -s odoo-one 10014 20014
+curl -s https://raw.githubusercontent.com/Khalidserbout/cafe/master/run.sh | sudo bash -s odoo-one 10014 20014
 ```
 
-to set up first Odoo instance @ `localhost:10014` (default master password: `minhng.info`)
+to set up first Odoo instance @ `localhost:10014` (default master password: `8sW8t2wFAgxC3dpk`)
 
 and
 
 ``` bash
-curl -s https://raw.githubusercontent.com/minhng92/odoo-14-docker-compose/master/run.sh | sudo bash -s odoo-two 11014 21014
+curl -s https://raw.githubusercontent.com/Khalidserbout/cafe/master/run.sh | sudo bash -s odoo-two 11014 21014
 ```
 
-to set up another Odoo instance @ `localhost:11014` (default master password: `minhng.info`)
+to set up another Odoo instance @ `localhost:11014` (default master password: `8sW8t2wFAgxC3dpk`)
 
 Some arguments:
 * First argument (**odoo-one**): Odoo deploy folder
@@ -40,7 +44,7 @@ Start the container:
 docker-compose up
 ```
 
-* Then open `localhost:10014` to access Odoo 14.0. If you want to start the server with a different port, change **10014** to another value in **docker-compose.yml**:
+* Then open `localhost:10014` to access Odoo 12.0. If you want to start the server with a different port, change **10014** to another value in **docker-compose.yml**:
 
 ```
 ports:
@@ -56,7 +60,7 @@ docker-compose up -d
 **If you get the permission issue**, change the folder permission to make sure that the container is able to access the directory:
 
 ``` sh
-$ git clone https://github.com/minhng92/odoo-14-docker-compose
+$ git clone https://github.com/Khalidserbout/cafe
 $ sudo chmod -R 777 addons
 $ sudo chmod -R 777 etc
 $ mkdir -p postgresql
@@ -83,7 +87,7 @@ The **addons/** folder contains custom addons.
 
 * To change Odoo configuration, edit file: **etc/odoo.conf**.
 * Log file: **etc/odoo-server.log**
-* Default database password (**admin_passwd**) is `minhng.info`, please change it @ [etc/odoo.conf#L60](/etc/odoo.conf#L60)
+* Default database password (**admin_passwd**) is `8sW8t2wFAgxC3dpk`, please change it @ [etc/odoo.conf#L60](/etc/odoo.conf#L60)
 
 # Odoo container management
 
@@ -125,15 +129,6 @@ server {
 
 # docker-compose.yml
 
-* odoo:14.0
+* odoo:12.0
 * postgres:13
 
-# Odoo 14 screenshots
-
-![odoo-14-welcome-docker](screenshots/odoo-14-welcome-screenshot.png)
-
-![odoo-14-apps-docker](screenshots/odoo-14-apps-screenshot.png)
-
-![odoo-14-sales](screenshots/odoo-14-sales-screen.png)
-
-![odoo-14-form](screenshots/odoo-14-sales-form.png)
