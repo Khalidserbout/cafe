@@ -1,3 +1,7 @@
+# Odoo For coffe shops 
+This is odoo 12 with custom addons for coffe shops
+
+
 # Quick install
 
 Installing Odoo 12 with one command.
