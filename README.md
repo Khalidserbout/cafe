@@ -72,7 +72,12 @@ $ sudo sysctl -p    # apply new config immediately
 
 # Custom addons
 
-The **addons/** folder contains custom addons. Just put your custom addons if you have any.
+The **addons/** folder contains custom addons. 
+* IP Network Printer Drivers (ESCPOS) for POS Printing
+* Control Discount & Price For the POS.
+* Users/Cashiers can unlock POS screen by scanning their barcode or using security PIN
+* Confirmation any action by user of specific group
+
 
 # Odoo configuration & log
 
