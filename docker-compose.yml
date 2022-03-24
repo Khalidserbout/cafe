@@ -13,13 +13,13 @@ services:
         - ./postgresql:/var/lib/postgresql/data
 
   odoo12:
-    image: odoo:12
+    image: odoo:14
     user: root
     depends_on:
       - db
     ports:
-      - "10014:8069"
-      - "20014:8072" # live chat
+      - "8069:8069"
+      - "8072:8072" # live chat
     tty: true
     command: --
 #    command: odoo scaffold /mnt/extra-addons/custom_module

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import print_function
 
 import base64
@@ -13,6 +12,7 @@ import traceback
 from hashlib import md5
 from xml.etree import ElementTree as ET
 
+import six
 from PIL import Image
 
 from odoo.tools import pycompat
@@ -42,87 +42,88 @@ def utfstr(stuff):
 
 
 class StyleStack:
-    """
+    """ 
     The stylestack is used by the xml receipt serializer to compute the active styles along the xml
     document. Styles are just xml attributes, there is no css mechanism. But the style applied by
     the attributes are inherited by deeper nodes.
     """
-
     def __init__(self):
         self.stack = []
-        self.defaults = {  # default style values
-            "align": "left",
-            "underline": "off",
-            "bold": "off",
-            "size": "normal",
-            "font": "a",
-            "width": 48,
-            "indent": 0,
-            "tabwidth": 2,
-            "bullet": " - ",
-            "line-ratio": 0.5,
-            "color": "black",
-            "value-decimals": 2,
-            "value-symbol": "",
-            "value-symbol-position": "after",
-            "value-autoint": "off",
-            "value-decimals-separator": ".",
-            "value-thousands-separator": ",",
-            "value-width": 0,
+        self.defaults = {   # default style values
+            'align':     'left',
+            'underline': 'off',
+            'bold':      'off',
+            'size':      'normal',
+            'font'  :    'a',
+            'width':     48,
+            'indent':    0,
+            'tabwidth':  2,
+            'bullet':    ' - ',
+            'line-ratio':0.5,
+            'color':    'black',
+
+            'value-decimals':           2,
+            'value-symbol':             '',
+            'value-symbol-position':    'after',
+            'value-autoint':            'off',
+            'value-decimals-separator':  '.',
+            'value-thousands-separator': ',',
+            'value-width':               0,
+
         }
 
-        self.types = {  # attribute types, default is string and can be ommitted
-            "width": "int",
-            "indent": "int",
-            "tabwidth": "int",
-            "line-ratio": "float",
-            "value-decimals": "int",
-            "value-width": "int",
+        self.types = { # attribute types, default is string and can be ommitted
+            'width':    'int',
+            'indent':   'int',
+            'tabwidth': 'int',
+            'line-ratio':       'float',
+            'value-decimals':   'int',
+            'value-width':      'int',
         }
 
         self.cmds = {
             # translation from styles to escpos commands
             # some style do not correspond to escpos command are used by
             # the serializer instead
-            "align": {
-                "left": TXT_ALIGN_LT,
-                "right": TXT_ALIGN_RT,
-                "center": TXT_ALIGN_CT,
-                "_order": 1,
+            'align': {
+                'left': TXT_ALIGN_LT,
+                'right': TXT_ALIGN_RT,
+                'center': TXT_ALIGN_CT,
+                '_order': 1,
             },
-            "underline": {
-                "off": TXT_UNDERL_OFF,
-                "on": TXT_UNDERL_ON,
-                "double": TXT_UNDERL2_ON,
+            'underline': {
+                'off': TXT_UNDERL_OFF,
+                'on': TXT_UNDERL_ON,
+                'double': TXT_UNDERL2_ON,
                 # must be issued after 'size' command
                 # because ESC ! resets ESC -
-                "_order": 10,
+                '_order': 10,
             },
-            "bold": {
-                "off": TXT_BOLD_OFF,
-                "on": TXT_BOLD_ON,
+            'bold': {
+                'off': TXT_BOLD_OFF,
+                'on': TXT_BOLD_ON,
                 # must be issued after 'size' command
                 # because ESC ! resets ESC -
-                "_order": 10,
+                '_order': 10,
             },
-            "font": {
-                "a": TXT_FONT_A,
-                "b": TXT_FONT_B,
+            'font': {
+                'a': TXT_FONT_A,
+                'b': TXT_FONT_B,
                 # must be issued after 'size' command
                 # because ESC ! resets ESC -
-                "_order": 10,
+                '_order': 10,
             },
-            "size": {
-                "normal": TXT_NORMAL,
-                "double-height": TXT_2HEIGHT,
-                "double-width": TXT_2WIDTH,
-                "double": TXT_DOUBLE,
-                "_order": 1,
+            'size': {
+                'normal': TXT_NORMAL,
+                'double-height': TXT_2HEIGHT,
+                'double-width': TXT_2WIDTH,
+                'double': TXT_DOUBLE,
+                '_order': 1,
             },
-            "color": {
-                "black": TXT_COLOR_BLACK,
-                "red": TXT_COLOR_RED,
-                "_order": 1,
+            'color': {
+                'black': TXT_COLOR_BLACK,
+                'red': TXT_COLOR_RED,
+                '_order': 1,
             },
         }
 
@@ -142,9 +143,9 @@ class StyleStack:
         """converts a value to the attribute's type"""
         if not attr in self.types:
             return utfstr(val)
-        elif self.types[attr] == "int":
+        elif self.types[attr] == 'int':
             return int(float(val))
-        elif self.types[attr] == "float":
+        elif self.types[attr] == 'float':
             return float(val)
         else:
             return utfstr(val)
@@ -155,9 +156,8 @@ class StyleStack:
         for attr in style:
             if attr in self.cmds and not style[attr] in self.cmds[attr]:
                 print(
-                    "WARNING: ESC/POS PRINTING: ignoring invalid value: %s for style %s"
-                    % (style[attr], utfstr(attr))
-                )
+                    'WARNING: ESC/POS PRINTING: ignoring invalid value: %s for style %s'
+                    % (style[attr], utfstr(attr)))
             else:
                 _style[attr] = self.enforce_type(attr, style[attr])
         self.stack.append(_style)
@@ -168,9 +168,8 @@ class StyleStack:
         for attr in style:
             if attr in self.cmds and not style[attr] in self.cmds[attr]:
                 print(
-                    "WARNING: ESC/POS PRINTING: ignoring invalid value: %s for style %s"
-                    % (style[attr], attr)
-                )
+                    'WARNING: ESC/POS PRINTING: ignoring invalid value: %s for style %s'
+                    % (style[attr], attr))
             else:
                 self.stack[-1][attr] = self.enforce_type(attr, style[attr])
 
@@ -181,46 +180,45 @@ class StyleStack:
 
     def to_escpos(self):
         """ converts the current style to an escpos command string """
-        cmd = ""
-        ordered_cmds = sorted(self.cmds, key=lambda x: self.cmds[x]["_order"])
+        cmd = ''
+        ordered_cmds = sorted(self.cmds, key=lambda x: self.cmds[x]['_order'])
         for style in ordered_cmds:
             cmd += self.cmds[style][self.get(style)]
         return cmd
 
 
 class XmlSerializer:
-    """
+    """ 
     Converts the xml inline / block tree structure to a string,
     keeping track of newlines and spacings.
     The string is outputted asap to the provided escpos driver.
     """
-
     def __init__(self, escpos):
         self.escpos = escpos
-        self.stack = ["block"]
+        self.stack = ['block']
         self.dirty = False
 
     def start_inline(self, stylestack=None):
         """ starts an inline entity with an optional style definition """
-        self.stack.append("inline")
+        self.stack.append('inline')
         if self.dirty:
-            self.escpos._raw(" ")
+            self.escpos._raw(' ')
         if stylestack:
             self.style(stylestack)
 
     def start_block(self, stylestack=None):
         """ starts a block entity with an optional style definition """
         if self.dirty:
-            self.escpos._raw("\n")
+            self.escpos._raw('\n')
             self.dirty = False
-        self.stack.append("block")
+        self.stack.append('block')
         if stylestack:
             self.style(stylestack)
 
     def end_entity(self):
         """ ends the entity definition. (but does not cancel the active style!) """
-        if self.stack[-1] == "block" and self.dirty:
-            self.escpos._raw("\n")
+        if self.stack[-1] == 'block' and self.dirty:
+            self.escpos._raw('\n')
             self.dirty = False
         if len(self.stack) > 1:
             self.stack = self.stack[:-1]
@@ -236,7 +234,7 @@ class XmlSerializer:
         if text:
             text = utfstr(text)
             text = text.strip()
-            text = re.sub("\s+", " ", text)
+            text = re.sub('\s+', ' ', text)
             if text:
                 self.dirty = True
                 self.escpos.text(text)
@@ -244,7 +242,7 @@ class XmlSerializer:
     def linebreak(self):
         """ inserts a linebreak in the entity """
         self.dirty = False
-        self.escpos._raw("\n")
+        self.escpos._raw('\n')
 
     def style(self, stylestack):
         """ apply a style to the entity (only applies to content added after the definition) """
@@ -256,12 +254,11 @@ class XmlSerializer:
 
 
 class XmlLineSerializer:
-    """
+    """ 
     This is used to convert a xml tree into a single line, with a left and a right part.
     The content is not output to escpos directly, and is intended to be fedback to the
     XmlSerializer as the content of a block entity.
     """
-
     def __init__(self, indent=0, tabwidth=2, width=48, ratio=0.5):
         self.tabwidth = tabwidth
         self.indent = indent
@@ -270,25 +267,25 @@ class XmlLineSerializer:
         self.rwidth = max(0, self.width - self.lwidth)
         self.clwidth = 0
         self.crwidth = 0
-        self.lbuffer = ""
-        self.rbuffer = ""
+        self.lbuffer = ''
+        self.rbuffer = ''
         self.left = True
 
     def _txt(self, txt):
         if self.left:
             if self.clwidth < self.lwidth:
-                txt = txt[: max(0, self.lwidth - self.clwidth)]
+                txt = txt[:max(0, self.lwidth - self.clwidth)]
                 self.lbuffer += txt
                 self.clwidth += len(txt)
         else:
             if self.crwidth < self.rwidth:
-                txt = txt[: max(0, self.rwidth - self.crwidth)]
+                txt = txt[:max(0, self.rwidth - self.crwidth)]
                 self.rbuffer += txt
                 self.crwidth += len(txt)
 
     def start_inline(self, stylestack=None):
         if (self.left and self.clwidth) or (not self.left and self.crwidth):
-            self._txt(" ")
+            self._txt(' ')
 
     def start_block(self, stylestack=None):
         self.start_inline(stylestack)
@@ -304,7 +301,7 @@ class XmlLineSerializer:
         if text:
             text = utfstr(text)
             text = text.strip()
-            text = re.sub("\s+", " ", text)
+            text = re.sub('\s+', ' ', text)
             if text:
                 self._txt(text)
 
@@ -321,17 +318,12 @@ class XmlLineSerializer:
         self.left = False
 
     def get_line(self):
-        return (
-            " " * self.indent * self.tabwidth
-            + self.lbuffer
-            + " " * (self.width - self.clwidth - self.crwidth)
-            + self.rbuffer
-        )
+        return ' ' * self.indent * self.tabwidth + self.lbuffer + ' ' * (
+            self.width - self.clwidth - self.crwidth) + self.rbuffer
 
 
 class Escpos:
     """ ESC/POS Printer object """
-
     device = None
     encoding = None
     img_cache = {}
@@ -354,12 +346,14 @@ class Escpos:
         buffer = ""
 
         self._raw(S_RASTER_N)
-        buffer = b"%02X%02X%02X%02X" % (int((size[0] / size[1]) / 8), 0, size[1], 0)
-        self._raw(codecs.decode(buffer, "hex"))
+        #buffer = b"%02X%02X%02X%02X" % (int((size[0] / size[1]) / 8), 0, size[1], 0)
+        buffer = "%02X%02X%02X%02X" % (int(
+            (size[0] / size[1]) / 8), 0, size[1] & 0xff, size[1] >> 8)
+        self._raw(codecs.decode(buffer, 'hex'))
         buffer = ""
 
         while i < len(line):
-            hex_string = int(line[i : i + 8], 2)
+            hex_string = int(line[i:i + 8], 2)
             buffer += "%02X" % hex_string
             i += 8
             cont += 1
@@ -381,18 +375,20 @@ class Escpos:
             else:
                 self._raw(string)
 
-        raw += S_RASTER_N.encode("utf-8")
-        buffer = "%02X%02X%02X%02X" % (int((size[0] / size[1]) / 8), 0, size[1], 0)
-        raw += codecs.decode(buffer, "hex")
+        raw += S_RASTER_N.encode('utf-8')
+        #buffer = "%02X%02X%02X%02X" % (int((size[0] / size[1]) / 8), 0, size[1], 0)
+        buffer = "%02X%02X%02X%02X" % (int(
+            (size[0] / size[1]) / 8), 0, size[1] & 0xff, size[1] >> 8)
+        raw += codecs.decode(buffer, 'hex')
         buffer = ""
 
         while i < len(line):
-            hex_string = int(line[i : i + 8], 2)
+            hex_string = int(line[i:i + 8], 2)
             buffer += "%02X" % hex_string
             i += 8
             cont += 1
             if cont % 4 == 0:
-                raw += codecs.decode(buffer, "hex")
+                raw += codecs.decode(buffer, 'hex')
                 buffer = ""
                 cont = 0
 
@@ -411,7 +407,8 @@ class Escpos:
             print(
                 "WARNING: Image is wider than 512 and could be truncated at print time "
             )
-        if im.size[1] > 255:
+        #if im.size[1] > 255: #disabled in order to print long images
+        if im.size[1] > 0xffff:
             raise ImageSizeError()
 
         im_border = self._check_image_size(im.size[0])
@@ -427,7 +424,7 @@ class Escpos:
             for x in range(im.size[0]):
                 img_size[0] += 1
                 RGB = im.getpixel((x, y))
-                im_color = RGB[0] + RGB[1] + RGB[2]
+                im_color = (RGB[0] + RGB[1] + RGB[2])
                 im_pattern = "1X0"
                 pattern_len = len(im_pattern)
                 switch = (switch - 1) * (-1)
@@ -438,9 +435,8 @@ class Escpos:
                         else:
                             pix_line += im_pattern[x]
                         break
-                    elif im_color > (
-                        255 * 3 / pattern_len * pattern_len
-                    ) and im_color <= (255 * 3):
+                    elif im_color > (255 * 3 / pattern_len *
+                                     pattern_len) and im_color <= (255 * 3):
                         pix_line += im_pattern[-1]
                         break
             pix_line += im_right
@@ -458,19 +454,19 @@ class Escpos:
 
     def print_base64_image(self, img):
 
-        print("print_b64_img")
+        print('print_b64_img')
 
         id = md5(img).digest()
 
         if id not in self.img_cache:
-            print("not in cache")
+            print('not in cache')
 
-            img = img[img.find(b",") + 1 :]
-            f = io.BytesIO(b"img")
+            img = img[img.find(b',') + 1:]
+            f = io.BytesIO(b'img')
             f.write(base64.decodebytes(img))
             f.seek(0)
             img_rgba = Image.open(f)
-            img = Image.new("RGB", img_rgba.size, (255, 255, 255))
+            img = Image.new('RGB', img_rgba.size, (255, 255, 255))
             channels = img_rgba.split()
             if len(channels) > 3:
                 # use alpha channel as mask
@@ -478,17 +474,16 @@ class Escpos:
             else:
                 img.paste(img_rgba)
 
-            print("convert image")
+            print('convert image')
 
             pix_line, img_size = self._convert_image(img)
 
-            print("print image")
+            print('print image')
 
             buffer = self._raw_print_image(pix_line, img_size)
             self.img_cache[id] = buffer
 
-        print("raw image")
-
+        print('raw image')
         self._raw(self.img_cache[id])
 
     def qr(self, text):
@@ -501,7 +496,7 @@ class Escpos:
         # Convert the RGB image in printable image
         self._convert_image(im)
 
-    def barcode(self, code, bc, width=255, height=2, pos="below", font="a"):
+    def barcode(self, code, bc, width=255, height=2, pos='below', font='a'):
         """ Print Barcode """
         # Align Bar Code()
         self._raw(TXT_ALIGN_CT)
@@ -552,7 +547,7 @@ class Escpos:
             # We are using type A commands
             # So we need to add the 'NULL' character
             # https://github.com/python-escpos/python-escpos/pull/98/files#diff-a0b1df12c7c67e38915adbe469051e2dR444
-            self._raw("\x00")
+            self._raw('\x00')
         else:
             raise BarcodeCodeError()
 
@@ -560,24 +555,21 @@ class Escpos:
         """
         Prints an xml based receipt definition
         """
-
         def strclean(string):
             if not string:
-                string = ""
+                string = ''
             string = string.strip()
-            string = re.sub("\s+", " ", string)
+            string = re.sub('\s+', ' ', string)
             return string
 
-        def format_value(
-            value,
-            decimals=3,
-            width=0,
-            decimals_separator=".",
-            thousands_separator=",",
-            autoint=False,
-            symbol="",
-            position="after",
-        ):
+        def format_value(value,
+                         decimals=3,
+                         width=0,
+                         decimals_separator='.',
+                         thousands_separator=',',
+                         autoint=False,
+                         symbol='',
+                         position='after'):
             decimals = max(0, int(decimals))
             width = max(0, int(width))
             value = float(value)
@@ -585,7 +577,7 @@ class Escpos:
             if autoint and math.floor(value) == value:
                 decimals = 0
             if width == 0:
-                width = ""
+                width = ''
 
             if thousands_separator:
                 formatstr = "{:" + str(width) + ",." + str(decimals) + "f}"
@@ -593,13 +585,13 @@ class Escpos:
                 formatstr = "{:" + str(width) + "." + str(decimals) + "f}"
 
             ret = formatstr.format(value)
-            ret = ret.replace(",", "COMMA")
-            ret = ret.replace(".", "DOT")
-            ret = ret.replace("COMMA", thousands_separator)
-            ret = ret.replace("DOT", decimals_separator)
+            ret = ret.replace(',', 'COMMA')
+            ret = ret.replace('.', 'DOT')
+            ret = ret.replace('COMMA', thousands_separator)
+            ret = ret.replace('DOT', decimals_separator)
 
             if symbol:
-                if position == "after":
+                if position == 'after':
                     ret = ret + symbol
                 else:
                     ret = symbol + ret
@@ -608,13 +600,29 @@ class Escpos:
         def print_elem(stylestack, serializer, elem, indent=0):
 
             elem_styles = {
-                "h1": {"bold": "on", "size": "double"},
-                "h2": {"size": "double"},
-                "h3": {"bold": "on", "size": "double-height"},
-                "h4": {"size": "double-height"},
-                "h5": {"bold": "on"},
-                "em": {"font": "b"},
-                "b": {"bold": "on"},
+                'h1': {
+                    'bold': 'on',
+                    'size': 'double'
+                },
+                'h2': {
+                    'size': 'double'
+                },
+                'h3': {
+                    'bold': 'on',
+                    'size': 'double-height'
+                },
+                'h4': {
+                    'size': 'double-height'
+                },
+                'h5': {
+                    'bold': 'on'
+                },
+                'em': {
+                    'font': 'b'
+                },
+                'b': {
+                    'bold': 'on'
+                },
             }
 
             stylestack.push()
@@ -622,21 +630,9 @@ class Escpos:
                 stylestack.set(elem_styles[elem.tag])
             stylestack.set(elem.attrib)
 
-            if elem.tag in (
-                "p",
-                "div",
-                "section",
-                "article",
-                "receipt",
-                "header",
-                "footer",
-                "li",
-                "h1",
-                "h2",
-                "h3",
-                "h4",
-                "h5",
-            ):
+            if elem.tag in ('p', 'div', 'section', 'article', 'receipt',
+                            'header', 'footer', 'li', 'h1', 'h2', 'h3', 'h4',
+                            'h5'):
                 serializer.start_block(stylestack)
                 serializer.text(elem.text)
                 for child in elem:
@@ -646,7 +642,7 @@ class Escpos:
                     serializer.end_entity()
                 serializer.end_entity()
 
-            elif elem.tag in ("span", "em", "b", "left", "right"):
+            elif elem.tag in ('span', 'em', 'b', 'left', 'right'):
                 serializer.start_inline(stylestack)
                 serializer.text(elem.text)
                 for child in elem:
@@ -656,101 +652,108 @@ class Escpos:
                     serializer.end_entity()
                 serializer.end_entity()
 
-            elif elem.tag == "value":
+            elif elem.tag == 'value':
                 serializer.start_inline(stylestack)
                 serializer.pre(
                     format_value(
                         elem.text,
-                        decimals=stylestack.get("value-decimals"),
-                        width=stylestack.get("value-width"),
-                        decimals_separator=stylestack.get("value-decimals-separator"),
-                        thousands_separator=stylestack.get("value-thousands-separator"),
-                        autoint=(stylestack.get("value-autoint") == "on"),
-                        symbol=stylestack.get("value-symbol"),
-                        position=stylestack.get("value-symbol-position"),
-                    )
-                )
+                        decimals=stylestack.get('value-decimals'),
+                        width=stylestack.get('value-width'),
+                        decimals_separator=stylestack.get(
+                            'value-decimals-separator'),
+                        thousands_separator=stylestack.get(
+                            'value-thousands-separator'),
+                        autoint=(stylestack.get('value-autoint') == 'on'),
+                        symbol=stylestack.get('value-symbol'),
+                        position=stylestack.get('value-symbol-position')))
                 serializer.end_entity()
 
-            elif elem.tag == "line":
-                width = stylestack.get("width")
-                if stylestack.get("size") in ("double", "double-width"):
+            elif elem.tag == 'line':
+                width = stylestack.get('width')
+                if stylestack.get('size') in ('double', 'double-width'):
                     width = width / 2
 
                 lineserializer = XmlLineSerializer(
-                    stylestack.get("indent") + indent,
-                    stylestack.get("tabwidth"),
-                    width,
-                    stylestack.get("line-ratio"),
-                )
+                    stylestack.get('indent') + indent,
+                    stylestack.get('tabwidth'), width,
+                    stylestack.get('line-ratio'))
                 serializer.start_block(stylestack)
                 for child in elem:
-                    if child.tag == "left":
-                        print_elem(stylestack, lineserializer, child, indent=indent)
-                    elif child.tag == "right":
+                    if child.tag == 'left':
+                        print_elem(stylestack,
+                                   lineserializer,
+                                   child,
+                                   indent=indent)
+                    elif child.tag == 'right':
                         lineserializer.start_right()
-                        print_elem(stylestack, lineserializer, child, indent=indent)
+                        print_elem(stylestack,
+                                   lineserializer,
+                                   child,
+                                   indent=indent)
                 serializer.pre(lineserializer.get_line())
                 serializer.end_entity()
 
-            elif elem.tag == "ul":
+            elif elem.tag == 'ul':
                 serializer.start_block(stylestack)
-                bullet = stylestack.get("bullet")
+                bullet = stylestack.get('bullet')
                 for child in elem:
-                    if child.tag == "li":
+                    if child.tag == 'li':
                         serializer.style(stylestack)
-                        serializer.raw(
-                            " " * indent * stylestack.get("tabwidth") + bullet
-                        )
-                    print_elem(stylestack, serializer, child, indent=indent + 1)
+                        serializer.raw(' ' * indent *
+                                       stylestack.get('tabwidth') + bullet)
+                    print_elem(stylestack,
+                               serializer,
+                               child,
+                               indent=indent + 1)
                 serializer.end_entity()
 
-            elif elem.tag == "ol":
+            elif elem.tag == 'ol':
                 cwidth = len(str(len(elem))) + 2
                 i = 1
                 serializer.start_block(stylestack)
                 for child in elem:
-                    if child.tag == "li":
+                    if child.tag == 'li':
                         serializer.style(stylestack)
-                        serializer.raw(
-                            " " * indent * stylestack.get("tabwidth")
-                            + " "
-                            + (str(i) + ")").ljust(cwidth)
-                        )
+                        serializer.raw(' ' * indent *
+                                       stylestack.get('tabwidth') + ' ' +
+                                       (str(i) + ')').ljust(cwidth))
                         i = i + 1
-                    print_elem(stylestack, serializer, child, indent=indent + 1)
+                    print_elem(stylestack,
+                               serializer,
+                               child,
+                               indent=indent + 1)
                 serializer.end_entity()
 
-            elif elem.tag == "pre":
+            elif elem.tag == 'pre':
                 serializer.start_block(stylestack)
                 serializer.pre(elem.text)
                 serializer.end_entity()
 
-            elif elem.tag == "hr":
-                width = stylestack.get("width")
-                if stylestack.get("size") in ("double", "double-width"):
+            elif elem.tag == 'hr':
+                width = stylestack.get('width')
+                if stylestack.get('size') in ('double', 'double-width'):
                     width = width / 2
                 serializer.start_block(stylestack)
-                serializer.text("-" * width)
+                serializer.text('-' * width)
                 serializer.end_entity()
 
-            elif elem.tag == "br":
+            elif elem.tag == 'br':
                 serializer.linebreak()
 
-            elif elem.tag == "img":
-                if "src" in elem.attrib and "data:" in elem.attrib["src"]:
-                    self.print_base64_image(bytes(elem.attrib["src"], "utf-8"))
+            elif elem.tag == 'img':
+                if 'src' in elem.attrib and 'data:' in elem.attrib['src']:
+                    self.print_base64_image(bytes(elem.attrib['src'], 'utf-8'))
 
-            elif elem.tag == "barcode" and "encoding" in elem.attrib:
+            elif elem.tag == 'barcode' and 'encoding' in elem.attrib:
                 serializer.start_block(stylestack)
-                self.barcode(strclean(elem.text), elem.attrib["encoding"])
+                self.barcode(strclean(elem.text), elem.attrib['encoding'])
                 serializer.end_entity()
 
-            elif elem.tag == "cut":
+            elif elem.tag == 'cut':
                 self.cut()
-            elif elem.tag == "partialcut":
-                self.cut(mode="part")
-            elif elem.tag == "cashdraw":
+            elif elem.tag == 'partialcut':
+                self.cut(mode='part')
+            elif elem.tag == 'cashdraw':
                 self.cashdraw(2)
                 self.cashdraw(5)
 
@@ -759,31 +762,22 @@ class Escpos:
         try:
             stylestack = StyleStack()
             serializer = XmlSerializer(self)
-            root = ET.fromstring(xml.encode("utf-8"))
+            root = ET.fromstring(xml.encode('utf-8'))
 
             self._raw(stylestack.to_escpos())
 
             print_elem(stylestack, serializer, root)
 
-            if (
-                "open-cashdrawer" in root.attrib
-                and root.attrib["open-cashdrawer"] == "true"
-            ):
+            if 'open-cashdrawer' in root.attrib and root.attrib[
+                    'open-cashdrawer'] == 'true':
                 self.cashdraw(2)
                 self.cashdraw(5)
-            if not "cut" in root.attrib or root.attrib["cut"] == "true":
+            if not 'cut' in root.attrib or root.attrib['cut'] == 'true':
                 self.cut()
 
         except Exception as e:
-            errmsg = (
-                str(e)
-                + "\n"
-                + "-" * 48
-                + "\n"
-                + traceback.format_exc()
-                + "-" * 48
-                + "\n"
-            )
+            errmsg = str(e) + '\n' + '-' * 48 + '\n' + traceback.format_exc(
+            ) + '-' * 48 + '\n'
             self.text(errmsg)
             self.cut()
 
@@ -794,66 +788,67 @@ class Escpos:
         if not txt:
             return
         try:
-            txt = txt.decode("utf-8")
+            txt = txt.decode('utf-8')
         except:
             try:
-                txt = txt.decode("utf-16")
+                txt = txt.decode('utf-16')
             except:
                 pass
 
         self.extra_chars = 0
 
         def encode_char(char):
+            """ 
+            Encodes a single utf-8 character into a sequence of 
+            esc-pos code page change instructions and character declarations 
             """
-            Encodes a single utf-8 character into a sequence of
-            esc-pos code page change instructions and character declarations
-            """
-            char_utf8 = char.encode("utf-8")
-            encoded = ""
-            encoding = (
-                self.encoding
-            )  # we reuse the last encoding to prevent code page switches at every character
+            char_utf8 = char.encode('utf-8')
+            encoded = ''
+            encoding = self.encoding  # we reuse the last encoding to prevent code page switches at every character
             encodings = {
                 # TODO use ordering to prevent useless switches
                 # TODO Support other encodings not natively supported by python ( Thai, Khazakh, Kanjis )
-                "cp437": TXT_ENC_PC437,
-                "iso8859_2": TXT_ENC_8859_2,
-                "iso8859_7": TXT_ENC_8859_7,
-                "iso8859_9": TXT_ENC_8859_9,
-                "cp1254": TXT_ENC_WPC1254,
-                "cp1255": TXT_ENC_WPC1255,
-                "cp1256": TXT_ENC_WPC1256,
-                "cp1257": TXT_ENC_WPC1257,
-                "cp1258": TXT_ENC_WPC1258,
-                "cp1251": TXT_ENC_WPC1251,  # win-1251 covers more cyrillic symbols than cp866
-                "cp852": TXT_ENC_PC852,
-                "cp858": TXT_ENC_PC858,
-                "cp866": TXT_ENC_PC866,
-                "cp862": TXT_ENC_PC862,
-                "cp720": TXT_ENC_PC720,
-                "cp936": TXT_ENC_PC936,
-                "cp857": TXT_ENC_PC857,
-                "cp865": TXT_ENC_PC865,
-                "cp863": TXT_ENC_PC863,
-                "cp860": TXT_ENC_PC860,
-                "cp850": TXT_ENC_PC850,
-                "katakana": TXT_ENC_KATAKANA,
+                'cp437': TXT_ENC_PC437,
+                'cp850': TXT_ENC_PC850,
+                'cp852': TXT_ENC_PC852,
+                'cp857': TXT_ENC_PC857,
+                'cp858': TXT_ENC_PC858,
+                'cp860': TXT_ENC_PC860,
+                'cp863': TXT_ENC_PC863,
+                'cp865': TXT_ENC_PC865,
+                'cp1251':
+                TXT_ENC_WPC1251,  # win-1251 covers more cyrillic symbols than cp866
+                'cp866': TXT_ENC_PC866,
+                'cp862': TXT_ENC_PC862,
+                'cp720': TXT_ENC_PC720,
+                'cp936': TXT_ENC_PC936,
+                'iso8859_2': TXT_ENC_8859_2,
+                'iso8859_7': TXT_ENC_8859_7,
+                'iso8859_9': TXT_ENC_8859_9,
+                'cp1254': TXT_ENC_WPC1254,
+                'cp1255': TXT_ENC_WPC1255,
+                'cp1256': TXT_ENC_WPC1256,
+                'cp1257': TXT_ENC_WPC1257,
+                'cp1258': TXT_ENC_WPC1258,
+                'katakana': TXT_ENC_KATAKANA,
             }
             remaining = copy.copy(encodings)
 
             if not encoding:
-                encoding = "cp437"
+                encoding = 'cp437'
 
             while True:  # Trying all encoding until one succeeds
                 try:
-                    if encoding == "katakana":  # Japanese characters
+                    if encoding == 'katakana':  # Japanese characters
                         if jcconv:
                             # try to convert japanese text to a half-katakanas
-                            kata = jcconv.kata2half(jcconv.hira2kata(char_utf8))
+                            kata = jcconv.kata2half(
+                                jcconv.hira2kata(char_utf8))
                             if kata != char_utf8:
-                                self.extra_chars += len(kata.decode("utf-8")) - 1
+                                self.extra_chars += len(
+                                    kata.decode('utf-8')) - 1
                                 # the conversion may result in multiple characters
-                                return encode_str(kata.decode("utf-8"))
+                                return encode_str(kata.decode('utf-8'))
                         else:
                             kata = char_utf8
 
@@ -867,30 +862,31 @@ class Escpos:
                         # Extended range is covered by different encodings.
                         encoded = char.encode(encoding)
                         if ord(encoded) <= 127:
-                            encoding = "cp437"
+                            encoding = 'cp437'
                         break
 
-                except (UnicodeEncodeError, UnicodeWarning, TypeError, ValueError):
-                    # the encoding failed, select another one and retry
+                except (UnicodeEncodeError, UnicodeWarning, TypeError,
+                        ValueError):
+                    #the encoding failed, select another one and retry
                     if encoding in remaining:
                         del remaining[encoding]
                     if len(remaining) >= 1:
                         (encoding, _) = remaining.popitem()
                     else:
-                        encoding = "cp437"
-                        encoded = b"\xb1"  # could not encode, output error character
+                        encoding = 'cp437'
+                        encoded = b'\xb1'  # could not encode, output error character
                         break
 
             if encoding != self.encoding:
                 # if the encoding changed, remember it and prefix the character with
                 # the esc-pos encoding change sequence
                 self.encoding = encoding
-                encoded = bytes(encodings[encoding], "utf-8") + encoded
+                encoded = bytes(encodings[encoding], 'utf-8') + encoded
 
             return encoded
 
         def encode_str(txt):
-            buffer = b""
+            buffer = b''
             for c in txt:
                 buffer += encode_char(c)
             return buffer
@@ -901,16 +897,16 @@ class Escpos:
         # remove double spaces to try to restore the original string length
         # and prevent printing alignment issues
         while self.extra_chars > 0:
-            dspace = txt.find("  ")
+            dspace = txt.find('  ')
             if dspace > 0:
-                txt = txt[:dspace] + txt[dspace + 1 :]
+                txt = txt[:dspace] + txt[dspace + 1:]
                 self.extra_chars -= 1
             else:
                 break
 
         self._raw(txt)
 
-    def set(self, align="left", font="a", type="normal", width=1, height=1):
+    def set(self, align='left', font='a', type='normal', width=1, height=1):
         """ Set text properties """
         # Align
         if align.upper() == "CENTER":
@@ -956,18 +952,18 @@ class Escpos:
         else:  # DEFAULT SIZE: NORMAL
             self._raw(TXT_NORMAL)
 
-    def cut(self, mode=""):
+    def cut(self, mode=''):
         """ Cut paper """
         # Fix the size between last line and cut
-        # TODO: handle this with a line feed
-        self._raw("\n\n\n\n\n\n")
+        #self._raw("\n\n\n\n\n\n")
+        self.print_and_feed(6)
         if mode.upper() == "PART":
             self._raw(PAPER_PART_CUT)
         else:  # DEFAULT MODE: FULL CUT
             self._raw(PAPER_FULL_CUT)
 
     def cashdraw(self, pin):
-        """Send pulse to kick the cash drawer
+        """ Send pulse to kick the cash drawer
 
         For some reason, with some printers (ex: Epson TM-m30), the cash drawer
         only opens 50% of the time if you just send the pulse. But if you read
@@ -1005,3 +1001,15 @@ class Escpos:
             self._raw(CTL_HT)
         elif ctl.upper() == "VT":
             self._raw(CTL_VT)
+
+    def print_and_feed(self, n=1):
+        """ Print data in print buffer and feed *n* lines
+            if n not in range (0, 255) then ValueError will be raised
+            :param n: number of n to feed. 0 <= n <= 255. default: 1
+            :raises ValueError: if not 0 <= n <= 255
+        """
+        if 0 <= n <= 255:
+            # ESC d n
+            self._raw(ESC.encode() + b"d" + six.int2byte(n))
+        else:
+            raise ValueError("n must be betwen 0 and 255")
